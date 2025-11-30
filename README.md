@@ -4,7 +4,7 @@
 
 ## Overview
 The **Meeting Insight Agent** is an enterprise productivity tool designed to automate the extraction of action items from meeting transcripts. It demonstrates the use of:
-- **LLM (Gemini 1.5 Flash):** For understanding context and extracting structured data.
+- **LLM (Gemini 2.5 Flash lite):** For understanding context and extracting structured data.
 - **Agentic Workflow:** Deciding which tool to use (Email vs. Ticket) based on the content.
 - **Observability:** Full visibility into the agent's JSON reasoning process.
 
@@ -13,7 +13,7 @@ The **Meeting Insight Agent** is an enterprise productivity tool designed to aut
 ```mermaid
 graph TD
     A[User / Transcript] -->|Input| B(Streamlit UI);
-    B -->|Text| C{Gemini 1.5 Flash};
+    B -->|Text| C{Gemini 2.5 Flash Lite};
     C -->|JSON Plan| B;
     B -->|Review & Approve| D[Action Execution];
     D -->|Send Email| E[SMTP Service];
