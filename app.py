@@ -1,6 +1,9 @@
 import streamlit as st
 import os
+from dotenv import load_dotenv
 from agent import MeetingAgent
+
+load_dotenv()
 
 st.set_page_config(page_title="Meeting Insight Agent", layout="wide")
 
@@ -10,8 +13,16 @@ st.markdown("### Enterprise Agent for Action Item Extraction")
 # Sidebar for configuration
 with st.sidebar:
     st.header("Configuration")
-    api_key = st.text_input("Enter Google Gemini API Key", type="password")
-    st.info("Get your API key from [Google AI Studio](https://aistudio.google.com/)")
+    
+    # Try to load API key from environment
+    env_api_key = os.getenv("GOOGLE_API_KEY")
+    
+    if env_api_key:
+        st.success("API Key loaded from environment ✅")
+        api_key = env_api_key
+    else:
+        api_key = st.text_input("Enter Google Gemini API Key", type="password")
+        st.info("Get your API key from [Google AI Studio](https://aistudio.google.com/)")
 
 if not api_key:
     st.warning("Please enter your API Key in the sidebar to proceed.")
