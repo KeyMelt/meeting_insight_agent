@@ -8,6 +8,20 @@ The **Meeting Insight Agent** is an enterprise productivity tool designed to aut
 - **Agentic Workflow:** Deciding which tool to use (Email vs. Ticket) based on the content.
 - **Observability:** Full visibility into the agent's JSON reasoning process.
 
+## Architecture
+
+```mermaid
+graph TD
+    A[User / Transcript] -->|Input| B(Streamlit UI);
+    B -->|Text| C{Gemini 1.5 Flash};
+    C -->|JSON Plan| B;
+    B -->|Review & Approve| D[Action Execution];
+    D -->|Send Email| E[SMTP Service];
+    D -->|Create Ticket| F[Trello API];
+    E -->|Status| B;
+    F -->|Status| B;
+```
+
 ## Features
 - 📝 **Transcript Analysis:** Converts raw text into structured decisions and action items.
 - 🛠️ **Intelligent Routing:** Automatically routes tasks to a mock Email Service or Ticket Service.

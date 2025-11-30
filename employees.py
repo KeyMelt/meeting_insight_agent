@@ -18,4 +18,4 @@ def get_email_for_name(name: str) -> str:
     for key, email in EMPLOYEE_DIRECTORY.items():
         if key.lower() in name.lower():
             return email
-    return name
+    return None

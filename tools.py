@@ -25,8 +25,15 @@ class EmailService:
         Sends a real email using SMTP.
         Resolves names to emails using the employee directory first.
         """
-        # Resolve 'to' address (e.g., "Alice" -> "alice@example.com")
-        resolved_to = get_email_for_name(to)
+        # Resolve 'to' address
+        # If it looks like an email, use it. Otherwise, look it up.
+        if "@" in to:
+            resolved_to = to
+        else:
+            resolved_to = get_email_for_name(to)
+            
+        if not resolved_to:
+             return f"❌ Failed: Could not resolve email for '{to}'"
         
         email_record = {
             "to": resolved_to,
@@ -66,24 +73,61 @@ class EmailService:
     def get_sent_emails(self):
         return self.sent_emails
 
+import requests
+
 class TicketService:
     def __init__(self):
-        self.tickets = []
-        self.counter = 1
+        self.api_key = os.getenv("TRELLO_API_KEY")
+        self.token = os.getenv("TRELLO_TOKEN")
+        self.board_id = os.getenv("TRELLO_BOARD_ID")
+        self.list_id = os.getenv("TRELLO_LIST_ID")
+        self.base_url = "https://api.trello.com/1"
 
     def create_ticket(self, title: str, description: str, priority: str = "Medium") -> str:
-        """Simulates creating a Jira/Support ticket."""
-        ticket = {
-            "id": f"TICKET-{self.counter}",
-            "title": title,
-            "description": description,
-            "priority": priority,
-            "status": "Open",
-            "timestamp": datetime.now().isoformat()
+        """Creates a card in Trello."""
+        if not self.api_key or not self.token or not self.list_id:
+            return "❌ Failed: Missing Trello credentials (API_KEY, TOKEN, or LIST_ID)."
+
+        url = f"{self.base_url}/cards"
+        
+        # Map priority to labels (optional, can be expanded)
+        # For now, we just append it to the description
+        full_desc = f"{description}\n\n**Priority:** {priority}"
+
+        query = {
+            'key': self.api_key,
+            'token': self.token,
+            'idList': self.list_id,
+            'name': title,
+            'desc': full_desc,
+            'pos': 'top'
         }
-        self.tickets.append(ticket)
-        self.counter += 1
-        return f"Ticket {ticket['id']} created: {title}"
+
+        try:
+            response = requests.request("POST", url, params=query)
+            if response.status_code == 200:
+                card_data = response.json()
+                return f"✅ Trello Card Created: {card_data.get('shortUrl')}"
+            else:
+                return f"❌ Failed to create card: {response.text}"
+        except Exception as e:
+            return f"❌ Error connecting to Trello: {str(e)}"
 
     def get_tickets(self):
-        return self.tickets
+        """Fetches cards from the list to show state."""
+        if not self.api_key or not self.token or not self.list_id:
+            return []
+            
+        url = f"{self.base_url}/lists/{self.list_id}/cards"
+        query = {
+            'key': self.api_key,
+            'token': self.token
+        }
+        
+        try:
+            response = requests.request("GET", url, params=query)
+            if response.status_code == 200:
+                return response.json()
+        except:
+            pass
+        return []

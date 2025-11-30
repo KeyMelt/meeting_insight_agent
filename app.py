@@ -73,12 +73,34 @@ if "analysis" in st.session_state:
         # Form to review and execute actions
         with st.form("actions_form"):
             selected_actions = []
+            updated_emails = {} # Store user-provided emails
+            
             for i, item in enumerate(action_items):
                 st.markdown(f"**{i+1}. {item.get('description')}**")
-                st.caption(f"Assignee: {item.get('assignee')} | Type: {item.get('type')}")
+                
+                # Check for unknown email if type is 'email'
+                if item.get('type') == 'email':
+                    assignee = item.get('assignee')
+                    # We need to check if this assignee resolves to an email
+                    from employees import get_email_for_name
+                    resolved_email = get_email_for_name(assignee)
+                    
+                    if not resolved_email:
+                        st.warning(f"⚠️ Email for '{assignee}' not found.")
+                        user_email = st.text_input(f"Enter email for {assignee}:", key=f"email_{i}")
+                        if user_email:
+                            updated_emails[i] = user_email
+                            st.caption(f"Using: {user_email}")
+                    else:
+                        st.caption(f"Assignee: {assignee} ({resolved_email}) | Type: {item.get('type')}")
+                else:
+                    st.caption(f"Assignee: {item.get('assignee')} | Type: {item.get('type')}")
                 
                 # Checkbox to select for execution
                 if st.checkbox(f"Execute this action ({item.get('type')})", key=f"action_{i}"):
+                    # Inject the user-provided email into the item details if needed
+                    if i in updated_emails:
+                        item['details']['to'] = updated_emails[i]
                     selected_actions.append(item)
                 
                 st.divider()
